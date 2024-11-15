@@ -9,24 +9,21 @@
                     </ng-template>
                     <form nz-form [formGroup]="incomeForm" class="custom-form" (ngSubmit)="submitForm()">
                         <nz-form-item>
-                            <nz-form-control nzErrorTip="Please input the amount!">
+                            <nz-form-control nzErrorTip="Vui lòng nhập số tiền!">
                                 <nz-input-group nzAddOnAfter="VND">
                                     <input type="number" nz-input formControlName="amount" placeholder="Số tiền" />
                                 </nz-input-group>
                             </nz-form-control>
                         </nz-form-item>
                         <nz-form-item>
-                            <nz-form-control [nzErrorTip]="dateErrorTpl">
+                            <nz-form-control [nzErrorTip]="'Vui lòng chọn ngày!'">
                                 <nz-date-picker 
                                     style="width: 100%;" 
                                     formControlName="date"
-                                    (ngModelChange)="onDateChange($event)"
                                     [nzDisabledDate]="disabledDate"
+                                    nzFormat="dd/MM/yyyy"
+                                    [nzPlaceHolder]="'Chọn ngày'"
                                 ></nz-date-picker>
-                                <ng-template #dateErrorTpl let-control>
-                                    <ng-container *ngIf="control.hasError('required')">Vui lòng chọn ngày!</ng-container>
-                                    <ng-container *ngIf="control.hasError('futureDate')">Không thể chọn ngày trong tương lai!</ng-container>
-                                </ng-template>
                             </nz-form-control>
                         </nz-form-item>
                         <nz-form-item>
@@ -36,7 +33,7 @@
                             </nz-form-control>
                         </nz-form-item>
                         <nz-form-item>
-                            <nz-form-control nzErrorTip="Please input the category!">
+                            <nz-form-control nzErrorTip="Vui lòng chọn danh mục!">
                                 <nz-select nzAllowClear nzShowSearch nzPlaceHolder="Lựa chọn " formControlName="category">
                                     <nz-option *ngFor="let category of listOfCategory" [nzLabel]="category" [nzValue]="category"></nz-option>
                                     <nz-option [nzLabel]="'+ Thêm '" [nzValue]="null">

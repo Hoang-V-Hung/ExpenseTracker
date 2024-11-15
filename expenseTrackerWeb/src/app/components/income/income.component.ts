@@ -5,6 +5,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { IncomeService } from 'src/app/services/income/income.service';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import * as moment from 'moment';
+import { DateService } from 'src/app/services/date/date.service';
 
 @Component({
   selector: 'app-income',
@@ -45,7 +46,8 @@ export class IncomeComponent implements OnInit {
     private router: Router,
     private incomeService: IncomeService,
     private modal: NzModalService,
-    private route: Router
+    private route: Router,
+    private dateService: DateService
   ) {
     this.isListView = this.route.url.includes('income-list');
   }
@@ -54,10 +56,10 @@ export class IncomeComponent implements OnInit {
     this.getAllIncomes();
     this.incomeForm = this.fb.group({
       amount: [null, [Validators.required]],
-      date: [null, [Validators.required, this.dateValidator()]],
+      date: [null, [Validators.required]],
       category: [null, [Validators.required]],
-      description: [null, [Validators.required]],
-    })
+      description: [null, [Validators.required]]
+    });
   }
 
   submitForm() {
@@ -212,9 +214,7 @@ export class IncomeComponent implements OnInit {
     }
   }
 
-  disabledDate = (current: Date): boolean => {
-    return current > new Date();
-  };
+  disabledDate = this.dateService.disableFutureDate;
 
   getCurrentMonthIncomes(): any[] {
     const monthData = this.currentYearIncomes.find(m => m.month === this.selectedMonth);

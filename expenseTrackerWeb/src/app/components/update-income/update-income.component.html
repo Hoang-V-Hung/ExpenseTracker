@@ -7,12 +7,7 @@
                 </ng-template>
                 <form nz-form [formGroup]="incomeForm" class="custom-form" (ngSubmit)="submitForm()">
                     <nz-form-item>
-                        <nz-form-control nzErrorTip="Please input the title!">
-                            <input type="text" nz-input formControlName="title" placeholder="Loại tiền" />
-                        </nz-form-control>
-                    </nz-form-item>
-                    <nz-form-item>
-                        <nz-form-control nzErrorTip="Please input the amount!">
+                        <nz-form-control nzErrorTip="Vui lòng nhập mức tiền!">
                             <input type="text" nz-input formControlName="amount" placeholder="Mức tiền" />
                         </nz-form-control>
                     </nz-form-item>
@@ -37,7 +32,7 @@
                         </nz-form-control>
                     </nz-form-item>
                     <nz-form-item>
-                        <nz-form-control nzErrorTip="Please input the category!">
+                        <nz-form-control nzErrorTip="Vui lòng chọn danh mục!">
                             <nz-select nzAllowClear nzPlaceHolder="Select the category" formControlName="category" style="text-align: center;">
                                 <nz-option *ngFor="let category of listOfCategory" [nzLabel]="category" [nzValue]="category">
                                 </nz-option>

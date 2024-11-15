@@ -1,16 +1,17 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { ExpenseService } from 'src/app/services/expense/expense.service';
 import * as moment from 'moment';
+import { differenceInCalendarDays } from 'date-fns';
 
 @Component({
   selector: 'app-update-expense',
   templateUrl: './update-expense.component.html',
   styleUrls: ['./update-expense.component.scss']
 })
-export class UpdateExpenseComponent {
+export class UpdateExpenseComponent implements OnInit {
   expenseForm!: FormGroup;
   id: any;
   listOfCategory: any[] = ["Mua sắm", "Du lịch", "Học tập", "Bitcoin", "Chuyển tiền"];
@@ -28,11 +29,10 @@ export class UpdateExpenseComponent {
 
   ngOnInit() {
     this.expenseForm = this.fb.group({
-      title: [null, [Validators.required]],
       amount: [null, [Validators.required]],
-      date: [null, [Validators.required, this.dateValidator()]],
+      date: [null, [Validators.required]],
       category: [null, [Validators.required]],
-      description: [null, [Validators.required]],
+      description: [null, [Validators.required]]
     });
 
     this.getExpenseById();
@@ -77,35 +77,4 @@ export class UpdateExpenseComponent {
       this.customCategory = '';
     }
   }
-
-  dateValidator() {
-    return (control: any) => {
-      const selectedDate = moment(control.value);
-      const today = moment().startOf('day');
-      
-      if (selectedDate.isAfter(today)) {
-        return { futureDate: true };
-      }
-      return null;
-    };
-  }
-
-  onDateChange(event: any) {
-    const selectedDate = moment(event);
-    const today = moment().startOf('day');
-    
-    if (selectedDate.isAfter(today)) {
-      this.message.warning('Không thể chọn ngày trong tương lai!', {
-        nzDuration: 3000
-      });
-      this.expenseForm.patchValue({
-        date: null
-      });
-    }
-  }
-
-  disabledDate = (current: Date): boolean => {
-    // Không cho phép chọn ngày trong tương lai
-    return current > new Date();
-  };
 }
