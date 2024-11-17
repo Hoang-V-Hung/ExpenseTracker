@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NzMessageService } from 'ng-zorro-antd/message';
@@ -10,11 +10,11 @@ import * as moment from 'moment';
   templateUrl: './update-income.component.html',
   styleUrls: ['./update-income.component.scss']
 })
-export class UpdateIncomeComponent {
+export class UpdateIncomeComponent implements OnInit {
   incomeForm!: FormGroup;
   id: any;
-  listOfCategory: any[] = ["Mua sắm", "Du lịch", "Học tập", "Bitcoin", "Chuyển tiền"];
-  customCategory: string = '';
+  listOfCategory: string[] = [];
+  currentInputValue: string = '';
 
   constructor(
     private fb: FormBuilder,
@@ -28,26 +28,57 @@ export class UpdateIncomeComponent {
 
   ngOnInit() {
     this.incomeForm = this.fb.group({
-      title: [null, [Validators.required]],
       amount: [null, [Validators.required]],
-      date: [null, [Validators.required, this.dateValidator()]],
+      date: [moment().startOf('day').toDate(), [Validators.required]],
       category: [null, [Validators.required]],
-      description: [null, [Validators.required]],
+      description: [null, [Validators.required]]
     });
 
     this.getIncomeById();
   }
 
+  onCategoryChange(value: string) {
+    if (value && value !== this.incomeForm.get('category')?.value) {
+      this.incomeForm.get('category')?.setValue(value, { emitEvent: false });
+      this.currentInputValue = value;
+    }
+  }
+
+  onCategorySearch(value: string) {
+    if (value?.trim()) {
+      this.currentInputValue = value.trim();
+    }
+  }
+
+  onCategoryKeyEnter() {
+    if (this.currentInputValue?.trim()) {
+      const newValue = this.currentInputValue.trim();
+      
+      const existingCategory = this.listOfCategory.find(
+        cat => cat.toLowerCase() === newValue.toLowerCase()
+      );
+
+      if (!existingCategory) {
+        this.listOfCategory = [newValue, ...this.listOfCategory];
+      }
+
+      this.incomeForm.get('category')?.setValue(newValue, { emitEvent: false });
+    }
+  }
+
   submitForm() {
-    const selectedDate = moment(this.incomeForm.get('date')?.value);
-    const today = moment().startOf('day');
+    const selectedDate = moment(this.incomeForm.get('date')?.value).startOf('day');
+    const today = moment().endOf('day');
     
     if (selectedDate.isAfter(today)) {
       this.message.error("Không thể cập nhật thu nhập cho ngày trong tương lai!", { nzDuration: 5000 });
       return;
     }
 
-    this.incomeService.updateIncome(this.id, this.incomeForm.value).subscribe(res => {
+    const formValue = { ...this.incomeForm.value };
+    formValue.date = moment(formValue.date).format('YYYY-MM-DD');
+
+    this.incomeService.updateIncome(this.id, formValue).subscribe(res => {
       this.message.success("Cập nhật thu nhập thành công", { nzDuration: 5000 });
       this.router.navigateByUrl('/income-list');
     }, error => {
@@ -66,7 +97,7 @@ export class UpdateIncomeComponent {
   dateValidator() {
     return (control: any) => {
       const selectedDate = moment(control.value);
-      const today = moment().startOf('day');
+      const today = moment().endOf('day');
       
       if (selectedDate.isAfter(today)) {
         return { futureDate: true };
@@ -77,14 +108,14 @@ export class UpdateIncomeComponent {
 
   onDateChange(event: any) {
     const selectedDate = moment(event);
-    const today = moment().startOf('day');
+    const today = moment().endOf('day');
     
     if (selectedDate.isAfter(today)) {
       this.message.warning('Không thể chọn ngày trong tương lai!', {
         nzDuration: 3000
       });
       this.incomeForm.patchValue({
-        date: null
+        date: moment().startOf('day').toDate()
       });
     }
   }

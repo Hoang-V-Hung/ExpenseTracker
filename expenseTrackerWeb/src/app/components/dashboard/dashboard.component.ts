@@ -30,11 +30,13 @@ export class DashboardComponent {
   constructor(
     private statsService: StatsService,
     private message: NzMessageService
-  ){
+  )
+  {
     this.getStats();
     this.getChartData();
   }
 
+//tạo biểu đồ
   createLineChart(){
     const incomeCtx = this.incomeLineChartRef.nativeElement.getContext('2d');
 
@@ -87,19 +89,19 @@ export class DashboardComponent {
     });
   }
 
+// lấy dữ liệu kiểm tra thu nhập và chi phí
   getStats(){
     this.statsService.getStats().subscribe(res=>{
       console.log(res);
       this.stats = res;
       
       if (this.stats?.expense > this.stats?.income) {
-        this.message.warning('Chi phí vượt quá thu nhập!', {
-          nzDuration: 5000
-        });
+        this.message.warning('Chi phí vượt quá thu nhập!');
       }
     })
   }
 
+// cập nhật data và tạo biểu đồ
   getChartData(){
     this.statsService.getChart().subscribe(res=>{
       if(res.expenseList != null && res.incomeList != null){

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NzMessageService } from 'ng-zorro-antd/message';
@@ -15,8 +15,8 @@ import { DateService } from 'src/app/services/date/date.service';
 export class IncomeComponent implements OnInit {
   incomes: any;
   incomeForm!: FormGroup;
-  listOfCategory: any[] = ["Mua sắm", "Du lịch", "Học tập", "Bitcoin", "Chuyển tiền"];
-  customCategory: string = '';
+  listOfCategory: string[] = [];
+  customCategories: string[] = [];
   isListView: boolean = false;
   selectedMonth: number = new Date().getMonth() + 1;
   months = [
@@ -39,6 +39,11 @@ export class IncomeComponent implements OnInit {
   previousYearsIncomes: any[] = [];
   selectedYear: number = new Date().getFullYear();
   availableYears: number[] = [];
+  @ViewChild('categoryInput') categoryInput: ElementRef;
+  isAddingNewCategory: boolean = false;
+  tempCategory: string = '';
+  searchValue: string = '';
+  currentInputValue: string = '';
 
   constructor(
     private fb: FormBuilder,
@@ -54,30 +59,46 @@ export class IncomeComponent implements OnInit {
 
   ngOnInit() {
     this.getAllIncomes();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set thời gian về 00:00:00
+
     this.incomeForm = this.fb.group({
       amount: [null, [Validators.required]],
-      date: [null, [Validators.required]],
+      date: [today, [Validators.required]], // Sử dụng today đã được set
       category: [null, [Validators.required]],
       description: [null, [Validators.required]]
     });
   }
 
   submitForm() {
-    const selectedDate = moment(this.incomeForm.get('date')?.value);
-    const today = moment().startOf('day');
+    const selectedDate = moment(this.incomeForm.get('date')?.value).startOf('day');
+    const today = moment().endOf('day');
     
     if (selectedDate.isAfter(today)) {
       this.message.error("Không thể thêm thu nhập cho ngày trong tương lai!", { nzDuration: 5000 });
       return;
     }
 
-    this.incomeService.postIncome(this.incomeForm.value).subscribe(res => {
+    // Tạo bản sao của form value để xử lý ngày
+    const formValue = { ...this.incomeForm.value };
+    // Đảm bảo ngày được gửi đi đúng với ngày đã chọn
+    formValue.date = moment(formValue.date).format('YYYY-MM-DD');
+
+    this.incomeService.postIncome(formValue).subscribe(res => {
       this.message.success("Thêm thu nhập thành công", { nzDuration: 5000 });
       this.getAllIncomes();
       this.incomeForm.reset();
+
+      const resetToday = moment().startOf('day').toDate();
+      this.incomeForm.patchValue({
+        date: resetToday
+      });
+
+      this.currentInputValue = '';
+      this.searchValue = '';
     }, error => {
       this.message.error("Lỗi", { nzDuration: 5000 });
-    })
+    });
   }
 
   getAllIncomes() {
@@ -178,20 +199,58 @@ export class IncomeComponent implements OnInit {
     });
   }
 
-  addCustomCategory() {
-    if (this.customCategory && !this.listOfCategory.includes(this.customCategory)) {
-      this.listOfCategory.push(this.customCategory);
-      this.incomeForm.patchValue({
-        category: this.customCategory
-      });
-      this.customCategory = '';
+  onCategoryChange(value: string) {
+    if (value && value !== this.incomeForm.get('category')?.value) {
+      this.incomeForm.get('category')?.setValue(value, { emitEvent: false });
+      this.currentInputValue = value;
     }
+  }
+
+  onCategorySearch(value: string) {
+    if (value?.trim()) {
+      this.currentInputValue = value.trim();
+    }
+  }
+
+  onCategoryKeyEnter() {
+    if (this.currentInputValue?.trim()) {
+      const newValue = this.currentInputValue.trim();
+      
+      const existingCategory = this.listOfCategory.find(
+        cat => cat.toLowerCase() === newValue.toLowerCase()
+      );
+
+      if (!existingCategory) {
+        this.listOfCategory = [newValue, ...this.listOfCategory];
+      }
+
+      this.incomeForm.get('category')?.setValue(newValue, { emitEvent: false });
+    }
+  }
+
+  removeCategory(category: string, event: MouseEvent) {
+    event.stopPropagation();
+    
+    this.listOfCategory = this.listOfCategory.filter(
+      cat => cat.toLowerCase() !== category.toLowerCase()
+    );
+    
+    if (this.incomeForm.get('category')?.value?.toLowerCase() === category.toLowerCase()) {
+      this.incomeForm.patchValue({
+        category: null
+      });
+      this.currentInputValue = '';
+    }
+
+    this.message.success(`Đã xóa "${category}" khỏi danh sách`, { 
+      nzDuration: 2000
+    });
   }
 
   dateValidator() {
     return (control: any) => {
       const selectedDate = moment(control.value);
-      const today = moment().startOf('day');
+      const today = moment().endOf('day');
       
       if (selectedDate.isAfter(today)) {
         return { futureDate: true };
@@ -202,19 +261,21 @@ export class IncomeComponent implements OnInit {
 
   onDateChange(event: any) {
     const selectedDate = moment(event);
-    const today = moment().startOf('day');
+    const today = moment().endOf('day');
     
     if (selectedDate.isAfter(today)) {
       this.message.warning('Không thể chọn ngày trong tương lai!', {
         nzDuration: 3000
       });
       this.incomeForm.patchValue({
-        date: null
+        date: moment().startOf('day').toDate()
       });
     }
   }
 
-  disabledDate = this.dateService.disableFutureDate;
+  disabledDate = (current: Date): boolean => {
+    return current > new Date();
+  };
 
   getCurrentMonthIncomes(): any[] {
     const monthData = this.currentYearIncomes.find(m => m.month === this.selectedMonth);
@@ -228,5 +289,22 @@ export class IncomeComponent implements OnInit {
 
   onMonthChange(month: number) {
     this.selectedMonth = month;
+  }
+
+  getAllCategories(): string[] {
+    return [...this.listOfCategory, ...this.customCategories];
+  }
+
+  getFilteredCategories(): string[] {
+    const searchTerm = this.searchValue.toLowerCase();
+    const allCategories = [...new Set(this.customCategories)]; // Loại bỏ trùng lặp
+    
+    if (!searchTerm) {
+      return allCategories;
+    }
+
+    return allCategories.filter(cat => 
+      cat.toLowerCase().includes(searchTerm)
+    );
   }
 }

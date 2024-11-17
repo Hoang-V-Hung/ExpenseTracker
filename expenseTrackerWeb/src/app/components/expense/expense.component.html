@@ -34,16 +34,22 @@
                         </nz-form-item>
                         <nz-form-item>
                             <nz-form-control nzErrorTip="Vui lòng chọn danh mục!">
-                                <nz-select nzAllowClear nzShowSearch nzPlaceHolder="Lựa chọn " formControlName="category">
-                                    <nz-option *ngFor="let category of listOfCategory" [nzLabel]="category" [nzValue]="category"></nz-option>
-                                    <nz-option [nzLabel]="'+ Thêm '" [nzValue]="null">
-                                        <input nz-input 
-                                            [(ngModel)]="customCategory" 
-                                            [ngModelOptions]="{standalone: true}"
-                                            (keyup.enter)="addCustomCategory()"
-                                            placeholder="Enter new category"
-                                            style="width: 100%;"
-                                        />
+                                <nz-select 
+                                    nzAllowClear 
+                                    nzShowSearch 
+                                    nzServerSearch
+                                    nzPlaceHolder="Nhập danh mục" 
+                                    formControlName="category"
+                                    (ngModelChange)="onCategoryChange($event)"
+                                    (nzOnSearch)="onCategorySearch($event)"
+                                    (keyup.enter)="onCategoryKeyEnter()"
+                                >
+                                    <nz-option 
+                                        *ngFor="let category of listOfCategory" 
+                                        [nzLabel]="category" 
+                                        [nzValue]="category"
+                                    >
+                                        {{ category }}
                                     </nz-option>
                                 </nz-select>
                             </nz-form-control>
@@ -112,3 +118,9 @@
         </div>
     </div>
 </div>
+
+<ng-template #defaultTemplate let-selected>
+    {{ selected.nzValue || selected.nzLabel }}
+</ng-template>
+
+

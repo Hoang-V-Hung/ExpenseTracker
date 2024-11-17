@@ -10,6 +10,6 @@ export class DateService {
     const currentDate = new Date(current);
     currentDate.setHours(0, 0, 0, 0);
     
-    return currentDate.getTime() > today.getTime();
+    return currentDate.getTime() >= today.getTime();
   };
 } 

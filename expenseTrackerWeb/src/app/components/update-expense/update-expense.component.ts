@@ -14,8 +14,8 @@ import { differenceInCalendarDays } from 'date-fns';
 export class UpdateExpenseComponent implements OnInit {
   expenseForm!: FormGroup;
   id: any;
-  listOfCategory: any[] = ["Mua sắm", "Du lịch", "Học tập", "Bitcoin", "Chuyển tiền"];
-  customCategory: string = '';
+  listOfCategory: string[] = [];
+  currentInputValue: string = '';
 
   constructor(
     private fb: FormBuilder,
@@ -30,7 +30,7 @@ export class UpdateExpenseComponent implements OnInit {
   ngOnInit() {
     this.expenseForm = this.fb.group({
       amount: [null, [Validators.required]],
-      date: [null, [Validators.required]],
+      date: [moment().startOf('day').toDate(), [Validators.required]],
       category: [null, [Validators.required]],
       description: [null, [Validators.required]]
     });
@@ -52,15 +52,18 @@ export class UpdateExpenseComponent implements OnInit {
   }
 
   submitForm() {
-    const selectedDate = moment(this.expenseForm.get('date')?.value);
-    const today = moment().startOf('day');
+    const selectedDate = moment(this.expenseForm.get('date')?.value).startOf('day');
+    const today = moment().endOf('day');
     
     if (selectedDate.isAfter(today)) {
       this.message.error("Không thể cập nhật chi phí cho ngày trong tương lai!", { nzDuration: 5000 });
       return;
     }
 
-    this.expenseService.updateExpense(this.id, this.expenseForm.value).subscribe(res => {
+    const formValue = { ...this.expenseForm.value };
+    formValue.date = moment(formValue.date).format('YYYY-MM-DD');
+
+    this.expenseService.updateExpense(this.id, formValue).subscribe(res => {
       this.message.success("Cập nhật chi phí thành công", { nzDuration: 5000 });
       this.router.navigateByUrl('/expense-list');
     }, error => {
@@ -68,13 +71,62 @@ export class UpdateExpenseComponent implements OnInit {
     });
   }
 
-  addCustomCategory() {
-    if (this.customCategory && !this.listOfCategory.includes(this.customCategory)) {
-      this.listOfCategory.push(this.customCategory);
-      this.expenseForm.patchValue({
-        category: this.customCategory
+  dateValidator() {
+    return (control: any) => {
+      const selectedDate = moment(control.value);
+      const today = moment().endOf('day');
+      
+      if (selectedDate.isAfter(today)) {
+        return { futureDate: true };
+      }
+      return null;
+    };
+  }
+
+  onDateChange(event: any) {
+    const selectedDate = moment(event);
+    const today = moment().endOf('day');
+    
+    if (selectedDate.isAfter(today)) {
+      this.message.warning('Không thể chọn ngày trong tương lai!', {
+        nzDuration: 3000
       });
-      this.customCategory = '';
+      this.expenseForm.patchValue({
+        date: moment().startOf('day').toDate()
+      });
+    }
+  }
+
+  disabledDate = (current: Date): boolean => {
+    return current > new Date();
+  };
+
+  onCategoryChange(value: string) {
+    if (value && value !== this.expenseForm.get('category')?.value) {
+      this.expenseForm.get('category')?.setValue(value, { emitEvent: false });
+      this.currentInputValue = value;
+    }
+  }
+
+  onCategorySearch(value: string) {
+    if (value?.trim()) {
+      this.currentInputValue = value.trim();
+    }
+  }
+
+  onCategoryKeyEnter() {
+    if (this.currentInputValue?.trim()) {
+      const newValue = this.currentInputValue.trim();
+      
+      const existingCategory = this.listOfCategory.find(
+        cat => cat.toLowerCase() === newValue.toLowerCase()
+      );
+
+      if (!existingCategory) {
+        this.listOfCategory = [newValue, ...this.listOfCategory];
+      }
+
+      this.expenseForm.get('category')?.setValue(newValue, { emitEvent: false });
     }
   }
 }
