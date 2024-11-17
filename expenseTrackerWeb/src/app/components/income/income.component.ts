@@ -6,6 +6,7 @@ import { IncomeService } from 'src/app/services/income/income.service';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import * as moment from 'moment';
 import { DateService } from 'src/app/services/date/date.service';
+import { StatsService } from 'src/app/services/stats/stats.service';
 
 @Component({
   selector: 'app-income',
@@ -52,7 +53,8 @@ export class IncomeComponent implements OnInit {
     private incomeService: IncomeService,
     private modal: NzModalService,
     private route: Router,
-    private dateService: DateService
+    private dateService: DateService,
+    private statsService: StatsService
   ) {
     this.isListView = this.route.url.includes('income-list');
   }
@@ -88,6 +90,8 @@ export class IncomeComponent implements OnInit {
       this.message.success("Thêm thu nhập thành công", { nzDuration: 5000 });
       this.getAllIncomes();
       this.incomeForm.reset();
+      
+      this.statsService.refreshStats();
 
       const resetToday = moment().startOf('day').toDate();
       this.incomeForm.patchValue({
@@ -182,6 +186,7 @@ export class IncomeComponent implements OnInit {
     this.incomeService.deleteIncome(id).subscribe(res => {
       this.message.success("Xoá thu nhập thành công", { nzDuration: 5000 });
       this.getAllIncomes();
+      this.statsService.refreshStats();
     }, error => {
       this.message.error("Lỗi khi xoá thu nhập", { nzDuration: 5000 });
     });

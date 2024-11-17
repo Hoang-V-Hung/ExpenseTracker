@@ -5,6 +5,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { ExpenseService } from 'src/app/services/expense/expense.service';
 import * as moment from 'moment';
 import { differenceInCalendarDays } from 'date-fns';
+import { StatsService } from 'src/app/services/stats/stats.service';
 
 @Component({
   selector: 'app-update-expense',
@@ -22,7 +23,8 @@ export class UpdateExpenseComponent implements OnInit {
     private expenseService: ExpenseService,
     private message: NzMessageService,
     private router: Router,
-    private activatedRoute: ActivatedRoute
+    private activatedRoute: ActivatedRoute,
+    private statsService: StatsService
   ) {
     this.id = this.activatedRoute.snapshot.params['id'];
   }
@@ -65,6 +67,7 @@ export class UpdateExpenseComponent implements OnInit {
 
     this.expenseService.updateExpense(this.id, formValue).subscribe(res => {
       this.message.success("Cập nhật chi phí thành công", { nzDuration: 5000 });
+      this.statsService.refreshStats();
       this.router.navigateByUrl('/expense-list');
     }, error => {
       this.message.error("Lỗi khi cập nhật chi phí", { nzDuration: 5000 });

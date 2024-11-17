@@ -6,6 +6,7 @@ import { ExpenseService } from 'src/app/services/expense/expense.service';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import * as moment from 'moment';
 import { DateService } from 'src/app/services/date/date.service';
+import { StatsService } from 'src/app/services/stats/stats.service';
 
 @Component({
   selector: 'app-expense',
@@ -52,7 +53,8 @@ export class ExpenseComponent implements OnInit {
     private expenseService: ExpenseService,
     private modal: NzModalService,
     private route: Router,
-    private dateService: DateService
+    private dateService: DateService,
+    private statsService: StatsService
   ) {
     this.isListView = this.route.url.includes('expense-list');
   }
@@ -86,6 +88,8 @@ export class ExpenseComponent implements OnInit {
       this.message.success("Thêm chi phí thành công", { nzDuration: 5000 });
       this.getAllExpenses();
       this.expenseForm.reset();
+
+      this.statsService.refreshStats();
 
       const resetToday = moment().startOf('day').toDate();
       this.expenseForm.patchValue({
@@ -180,6 +184,7 @@ export class ExpenseComponent implements OnInit {
     this.expenseService.deleteExpense(id).subscribe(res => {
       this.message.success("Xoá chi phí thành công", { nzDuration: 5000 });
       this.getAllExpenses();
+      this.statsService.refreshStats();
     }, error => {
       this.message.error("Lỗi khi xoá chi phí", { nzDuration: 5000 });
     });

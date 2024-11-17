@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 
 const BASIC_URL = "http://localhost:8080/"
 
@@ -8,6 +8,8 @@ const BASIC_URL = "http://localhost:8080/"
   providedIn: 'root'
 })
 export class StatsService {
+  private refreshSubject = new Subject<void>();
+  refresh$ = this.refreshSubject.asObservable();
 
   constructor(private http:HttpClient) { }
 
@@ -18,5 +20,8 @@ export class StatsService {
   getChart():Observable<any>{
     return this.http.get(BASIC_URL + "api/stats/chart")
   }
- 
+
+  refreshStats() {
+    this.refreshSubject.next();
+  }
 }
