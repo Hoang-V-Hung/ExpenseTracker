@@ -1,0 +1,81 @@
+nz-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  margin-bottom: 24px;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(5px);
+  
+  &:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  }
+
+  .ant-card-head {
+    border-bottom: 1px solid rgba(240, 240, 240, 0.4);
+    padding: 16px 24px;
+    background: rgba(250, 250, 250, 0.6);
+    
+    .ant-card-head-title {
+      font-size: 18px;
+      font-weight: 400;
+      color: rgba(0, 0, 0, 0.65);
+    }
+  }
+
+  .ant-card-body {
+    padding: 24px;
+  }
+
+  &[nzType="inner"] {
+    background: rgba(250, 250, 250, 0.6) !important;
+    
+    .ant-card-head {
+      background: rgba(245, 245, 245, 0.6);
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
+    }
+  }
+}
+
+.stats-value {
+  font-size: 24px;
+  font-weight: 400;
+  margin: 8px 0;
+  color: rgba(0, 0, 0, 0.65);
+  
+  &.positive {
+    color: rgba(82, 196, 26, 0.8);
+  }
+  
+  &.negative {
+    color: rgba(255, 77, 79, 0.8);
+  }
+}
+
+canvas {
+  margin: 16px 0;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.ant-row {
+  margin-bottom: 24px;
+}
+
+.ant-statistic-title {
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.ant-statistic-content {
+  color: rgba(0, 0, 0, 0.65);
+}
+
+[nz-card-grid] {
+  &:hover {
+    background: rgba(255, 255, 255, 0.9);
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+  }
+}
